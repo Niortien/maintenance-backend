@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TypeVehicule {
+  CAMINON
+  CAMIONNETTE
+  VOITURE
+  EQUIPEMENT
+}
+
+enum Statut {
+  ACTIF
+  EN_MAINTENANCE
+  INACTIF
+}
+
+enum StatutIntervention {
+  EN_ATTENTE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+}
+
+enum Specialite {
+  MECANIQUE_GENERALE
+  ELECTRICITE_AUTOMOBILE
+  PNEUMATIQUE
+  DIAGNOSTIC_ELECTRONIQUE
+  SYSTEME_FREINAGE
+  CLIMATISATION
+  TRANSMISSION
+  HYDRAULIQUE
+  CARROSSERIE
+  PEINTURE
+}
+
+enum Priorite {
+  FAIBLE
+  MOYENNE
+  ELEVEE
+  URGENTE
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Vehicule {
+  id               String         @id @default(ulid())
+  nom              String
+  numero_de_plaque String
+  annee            Int
+  type             TypeVehicule
+  modele           String
+  statut           Statut
+  interventions    Intervention[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+}
+
+model Technicien {
+  id            String         @id @default(ulid())
+  nom           String
+  prenom        String
+  email         String         @unique
+  telephone     String
+  statut        Statut         @default(ACTIF)
+  specialite    Specialite
+  interventions Intervention[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+}
+
+model Intervention {
+  id          String   @id @default(ulid())
+  date        DateTime
+  description String
+  situation   String
+  designation String
+  vehicule    Vehicule @relation(fields: [vehiculeId], references: [id])
+  vehiculeId  String
+
+  technicien   Technicien? @relation(fields: [technicienId], references: [id], onDelete: SetNull)
+  technicienId String? // nullable pour éviter blocage
+
+  priorite             Priorite           @default(MOYENNE)
+  cout                 Float
+  temps_estime_heures  Float
+  temps_reel_heures    Float?
+  pieces_utilisees     String?
+  notes_additionnelles String?
+  statut               StatutIntervention @default(EN_ATTENTE)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+}

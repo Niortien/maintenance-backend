@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { VehiculeModule } from './vehicule/vehicule.module';
@@ -7,7 +8,7 @@ import { TechnicienModule } from './technicien/technicien.module';
 import { InterventionModule } from './intervention/intervention.module';
 
 @Module({
-  imports: [VehiculeModule, AuthModule, TechnicienModule, InterventionModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), VehiculeModule, AuthModule, TechnicienModule, InterventionModule],
   controllers: [AppController],
   providers: [AppService],
 })

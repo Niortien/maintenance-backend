@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { TechnicienModule } from './technicien/technicien.module';
 import { InterventionModule } from './intervention/intervention.module';
 
+
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), VehiculeModule, AuthModule, TechnicienModule, InterventionModule],
   controllers: [AppController],

@@ -103,4 +103,18 @@ export class InterventionService {
     if (!interventionExist) throw new NotFoundException(`Intervention avec l'ID '${id}' introuvable`);
     return this.prisma.intervention.delete({ where: { id } });
   }
+
+  async getStatistics() {
+    const total = await this.prisma.intervention.count();
+    const enCours = await this.prisma.intervention.count({ where: { statut: StatutIntervention.EN_COURS } });
+    const terminees = await this.prisma.intervention.count({ where: { statut: StatutIntervention.TERMINEE } });
+    const urgentes = await this.prisma.intervention.count({ where: { priorite: Priorite.URGENTE } });
+
+    return {
+      totalInterventions: total,
+      interventionsEnCours: enCours,
+      interventionsTerminees: terminees,
+      interventionsUrgentes: urgentes,
+    };
+  }
 }

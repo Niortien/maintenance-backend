@@ -31,4 +31,9 @@ export class InterventionController {
   remove(@Param('id') id: string) {
     return this.interventionService.remove(id);
   }
+
+  @Get('statistics')
+  getStatistics() {
+    return this.interventionService.getStatistics();
+  }
 }

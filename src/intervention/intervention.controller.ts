@@ -17,6 +17,11 @@ export class InterventionController {
     return this.interventionService.findAll();
   }
 
+  @Get('statistics')
+  getStatistics() {
+    return this.interventionService.getStatistics();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.interventionService.findOne(id);
@@ -30,10 +35,5 @@ export class InterventionController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.interventionService.remove(id);
-  }
-
-  @Get('statistics')
-  getStatistics() {
-    return this.interventionService.getStatistics();
   }
 }

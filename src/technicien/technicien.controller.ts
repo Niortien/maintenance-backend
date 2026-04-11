@@ -17,6 +17,11 @@ export class TechnicienController {
     return this.technicienService.findAll();
   }
 
+  @Get('statistics')
+  getStatistics() {
+    return this.technicienService.getStatistics();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.technicienService.findOne(id);

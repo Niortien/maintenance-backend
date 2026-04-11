@@ -2,6 +2,7 @@ import { PrismaService } from './../database/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateVehiculeDto } from './dto/create-vehicule.dto';
 import { UpdateVehiculeDto } from './dto/update-vehicule.dto';
+import { Statut, StatutIntervention } from '@prisma/client';
 
 @Injectable()
 export class VehiculeService {
@@ -65,6 +66,42 @@ export class VehiculeService {
   return this.prisma.vehicule.delete({
     where: { id },
   });
+}
+
+async getStatistics() {
+  const total = await this.prisma.vehicule.count();
+  const actifs = await this.prisma.vehicule.count({ where: { statut: Statut.ACTIF } });
+  const enMaintenance = await this.prisma.vehicule.count({ where: { statut: Statut.EN_MAINTENANCE } });
+  const inactifs = await this.prisma.vehicule.count({ where: { statut: Statut.INACTIF } });
+  
+  // Véhicules avec interventions en cours
+  const vehiculesAvecInterventionsEnCours = await this.prisma.vehicule.count({
+    where: {
+      interventions: {
+        some: {
+          statut: StatutIntervention.EN_COURS
+        }
+      }
+    }
+  });
+
+  // Véhicules sans interventions
+  const vehiculesSansInterventions = await this.prisma.vehicule.count({
+    where: {
+      interventions: {
+        none: {}
+      }
+    }
+  });
+
+  return {
+    totalVehicules: total,
+    vehiculesActifs: actifs,
+    vehiculesEnMaintenance: enMaintenance,
+    vehiculesInactifs: inactifs,
+    vehiculesAvecInterventionsEnCours: vehiculesAvecInterventionsEnCours,
+    vehiculesSansInterventions: vehiculesSansInterventions,
+  };
 }
 
 }

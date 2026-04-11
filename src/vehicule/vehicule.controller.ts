@@ -17,6 +17,11 @@ export class VehiculeController {
     return this.vehiculeService.findAll();
   }
 
+  @Get('statistics')
+  getStatistics() {
+    return this.vehiculeService.getStatistics();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.vehiculeService.findOne(id);

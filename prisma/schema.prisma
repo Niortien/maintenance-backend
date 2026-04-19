@@ -150,13 +150,28 @@ model Site {
   nom             String
   code            String              @unique
   region          String?
+  couleur         String?             // ex: "#10b981"
   responsable     Technicien?         @relation("ResponsableSite", fields: [responsableId], references: [id])
   responsableId   String?
   vehicules       Vehicule[]
   techniciens     Technicien[]        @relation("TechnicienSite")
   rapports        RapportJournalier[]
+  compte          ResponsableSite?
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt @map("updated_at")
+}
+
+model ResponsableSite {
+  id        String   @id @default(ulid())
+  email     String   @unique
+  password  String
+  nom       String
+  prenom    String
+  telephone String?
+  site      Site     @relation(fields: [siteId], references: [id])
+  siteId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @map("updated_at")
 }
 
 model RapportJournalier {

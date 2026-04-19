@@ -1,34 +1,58 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body, Controller, Get, Patch, Post, UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { ChangePasswordDto, LoginDto, RegisterResponsableDto } from './dto/create-auth.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { CurrentResponsable, ResponsableWithSite } from './current-responsable.decorator';
 
+@ApiTags('Auth — Responsables de site')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  // POST /auth/login
+  @ApiOperation({ summary: 'Connexion responsable de site' })
+  @Post('login')
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  // POST /auth/register
+  @ApiOperation({ summary: 'Créer un compte responsable (admin)' })
+  @Post('register')
+  register(@Body() dto: RegisterResponsableDto) {
+    return this.authService.register(dto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  // GET /auth/me
+  @ApiOperation({ summary: 'Profil du responsable connecté + détails du site' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getProfile(@CurrentResponsable() user: ResponsableWithSite) {
+    return this.authService.getProfile(user.id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
+  // GET /auth/me/stats
+  @ApiOperation({ summary: 'Statistiques du site du responsable connecté' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/stats')
+  getSiteStats(@CurrentResponsable() user: ResponsableWithSite) {
+    return this.authService.getSiteStats(user.siteId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  // PATCH /auth/me/password
+  @ApiOperation({ summary: 'Changer le mot de passe' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/password')
+  changePassword(
+    @CurrentResponsable() user: ResponsableWithSite,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(user.id, dto);
   }
 }

@@ -51,6 +51,38 @@ enum Priorite {
   URGENTE
 }
 
+enum CategorieVehicule {
+  TASSEUR
+  BP
+  AMPLIROLL
+  TRACTEUR
+  KIA
+  VOITURETTE
+  PC
+  MOTO_TRICYCLE
+  KB
+}
+
+enum StatutVehiculeRapport {
+  OPERATIONNEL
+  EN_PANNE
+  ACCIDENTE
+  EN_ATTENTE
+}
+
+enum TypePanne {
+  MECANIQUE
+  AIR
+  ELECTRICITE
+  SOUDURE
+  HYDRAULIQUE
+  PNEUMATIQUE
+  POMPE_INJECTION
+  PNEU
+  CARROSSERIE
+  AUTRE
+}
+
 model Admin {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -106,4 +138,38 @@ model Intervention {
   statut               StatutIntervention @default(EN_ATTENTE)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt @map("updated_at")
+}
+
+model Site {
+  id        String              @id @default(ulid())
+  nom       String
+  code      String              @unique
+  region    String?
+  rapports  RapportJournalier[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt @map("updated_at")
+}
+
+model RapportJournalier {
+  id        String         @id @default(ulid())
+  date      DateTime
+  site      Site           @relation(fields: [siteId], references: [id])
+  siteId    String
+  lignes    LigneRapport[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt @map("updated_at")
+}
+
+model LigneRapport {
+  id              String                @id @default(ulid())
+  rapport         RapportJournalier     @relation(fields: [rapportId], references: [id], onDelete: Cascade)
+  rapportId       String
+  codeVehicule    String
+  immatriculation String?
+  categorie       CategorieVehicule
+  statut          StatutVehiculeRapport
+  typesPannes     TypePanne[]
+  description     String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt @map("updated_at")
 }

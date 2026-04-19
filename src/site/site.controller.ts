@@ -24,6 +24,11 @@ export class SiteController {
     return this.siteService.findOne(id);
   }
 
+  @Get(':id/dashboard')
+  getDashboard(@Param('id') id: string) {
+    return this.siteService.getDashboard(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSiteDto: UpdateSiteDto) {
     return this.siteService.update(id, updateSiteDto);

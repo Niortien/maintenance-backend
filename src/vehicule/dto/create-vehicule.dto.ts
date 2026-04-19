@@ -1,5 +1,5 @@
-import { IsInt, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { ApiProperty } from "@nestjs/swagger"
+import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import {Statut, TypeVehicule} from "@prisma/client"
 
 export class CreateVehiculeDto {
@@ -47,4 +47,9 @@ export class CreateVehiculeDto {
     @IsNotEmpty()
 
     statut:Statut
+
+    @ApiPropertyOptional({ description: 'ID du site auquel appartient le véhicule' })
+    @IsString()
+    @IsOptional()
+    siteId?: string;
 }

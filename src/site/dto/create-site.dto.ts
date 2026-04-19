@@ -16,4 +16,9 @@ export class CreateSiteDto {
   @IsString()
   @IsOptional()
   region?: string;
+
+  @ApiPropertyOptional({ description: 'ID du technicien responsable du site' })
+  @IsString()
+  @IsOptional()
+  responsableId?: string;
 }

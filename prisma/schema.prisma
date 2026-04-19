@@ -100,21 +100,26 @@ model Vehicule {
   modele           String
   statut           Statut
   interventions    Intervention[]
+  site             Site?          @relation(fields: [siteId], references: [id])
+  siteId           String?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt @map("updated_at")
 }
 
 model Technicien {
-  id            String         @id @default(ulid())
-  nom           String
-  prenom        String
-  email         String         @unique
-  telephone     String
-  statut        Statut         @default(ACTIF)
-  specialite    Specialite
-  interventions Intervention[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  id                 String         @id @default(ulid())
+  nom                String
+  prenom             String
+  email              String         @unique
+  telephone          String
+  statut             Statut         @default(ACTIF)
+  specialite         Specialite
+  interventions      Intervention[]
+  site               Site?          @relation("TechnicienSite", fields: [siteId], references: [id])
+  siteId             String?
+  sitesResponsable   Site[]         @relation("ResponsableSite")
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt @map("updated_at")
 }
 
 model Intervention {
@@ -141,13 +146,17 @@ model Intervention {
 }
 
 model Site {
-  id        String              @id @default(ulid())
-  nom       String
-  code      String              @unique
-  region    String?
-  rapports  RapportJournalier[]
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt @map("updated_at")
+  id              String              @id @default(ulid())
+  nom             String
+  code            String              @unique
+  region          String?
+  responsable     Technicien?         @relation("ResponsableSite", fields: [responsableId], references: [id])
+  responsableId   String?
+  vehicules       Vehicule[]
+  techniciens     Technicien[]        @relation("TechnicienSite")
+  rapports        RapportJournalier[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt @map("updated_at")
 }
 
 model RapportJournalier {

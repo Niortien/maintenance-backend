@@ -1,9 +1,9 @@
 import {
-  Body, Controller, Get, Patch, Post, UseGuards,
+  Body, Controller, Get, Patch, Post, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { ChangePasswordDto, LoginDto, RegisterResponsableDto } from './dto/create-auth.dto';
+import { ChangePasswordDto, LoginAdminDto, LoginDto, RegisterResponsableDto } from './dto/create-auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentResponsable, ResponsableWithSite } from './current-responsable.decorator';
 
@@ -54,5 +54,51 @@ export class AuthController {
     @Body() dto: ChangePasswordDto,
   ) {
     return this.authService.changePassword(user.id, dto);
+  }
+
+  // POST /auth/admin/login
+  @ApiOperation({ summary: 'Connexion administrateur' })
+  @Post('admin/login')
+  loginAdmin(@Body() dto: LoginAdminDto) {
+    return this.authService.loginAdmin(dto);
+  }
+
+  // GET /auth/me/vehicules  — véhicules du site du responsable connecté
+  @ApiOperation({ summary: 'Véhicules du site du responsable' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/vehicules')
+  getMyVehicules(@CurrentResponsable() user: ResponsableWithSite) {
+    return this.authService.getMyVehicules(user.siteId);
+  }
+
+  // GET /auth/me/techniciens — techniciens du site + interventions du jour
+  @ApiOperation({ summary: 'Techniciens du site avec interventions du jour' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/techniciens')
+  getMyTechniciens(@CurrentResponsable() user: ResponsableWithSite) {
+    return this.authService.getMyTechniciens(user.siteId);
+  }
+
+  // GET /auth/me/interventions?date=YYYY-MM-DD
+  @ApiOperation({ summary: 'Interventions du site, filtrées par date (défaut: aujourd\'hui)' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/interventions')
+  getMyInterventions(
+    @CurrentResponsable() user: ResponsableWithSite,
+    @Query('date') date?: string,
+  ) {
+    return this.authService.getMyInterventions(user.siteId, date);
+  }
+
+  // GET /auth/me/rapports
+  @ApiOperation({ summary: 'Rapports du site du responsable' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/rapports')
+  getMyRapports(@CurrentResponsable() user: ResponsableWithSite) {
+    return this.authService.getMyRapports(user.siteId);
   }
 }

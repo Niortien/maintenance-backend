@@ -8,7 +8,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { ChangePasswordDto, LoginDto, RegisterResponsableDto } from './dto/create-auth.dto';
+import { ChangePasswordDto, LoginAdminDto, LoginDto, RegisterResponsableDto } from './dto/create-auth.dto';
 import { JwtPayload } from './jwt.strategy';
 
 @Injectable()
@@ -179,5 +179,86 @@ export class AuthService {
         pannes: r.lignes.filter((l) => l.statut !== 'OPERATIONNEL').length,
       })),
     };
+  }
+
+  // ─── Login Admin ──────────────────────────────────────────────────────────
+  async loginAdmin(dto: LoginAdminDto) {
+    const admin = await this.prisma.admin.findUnique({ where: { email: dto.email } });
+    if (!admin) throw new UnauthorizedException('Email ou mot de passe incorrect');
+
+    const ok = await bcrypt.compare(dto.password, admin.password);
+    if (!ok) throw new UnauthorizedException('Email ou mot de passe incorrect');
+
+    const token = this.jwt.sign(
+      { sub: String(admin.id), email: admin.email, role: 'ADMIN' },
+    );
+
+    return {
+      access_token: token,
+      admin: { id: admin.id, email: admin.email },
+    };
+  }
+
+  // ─── Véhicules du site du responsable ────────────────────────────────────
+  async getMyVehicules(siteId: string) {
+    return this.prisma.vehicule.findMany({
+      where: { siteId },
+      orderBy: { nom: 'asc' },
+    });
+  }
+
+  // ─── Techniciens du site (avec interventions du jour) ────────────────────
+  async getMyTechniciens(siteId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    return this.prisma.technicien.findMany({
+      where: { siteId },
+      include: {
+        interventions: {
+          where: { date: { gte: today, lt: tomorrow } },
+          select: {
+            id: true,
+            description: true,
+            designation: true,
+            statut: true,
+            vehicule: { select: { nom: true, numero_de_plaque: true } },
+          },
+        },
+        _count: { select: { interventions: true } },
+      },
+      orderBy: { nom: 'asc' },
+    });
+  }
+
+  // ─── Interventions du site (filtrées par date) ────────────────────────────
+  async getMyInterventions(siteId: string, date?: string) {
+    const targetDate = date ? new Date(date) : new Date();
+    targetDate.setHours(0, 0, 0, 0);
+    const nextDay = new Date(targetDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    return this.prisma.intervention.findMany({
+      where: {
+        date: { gte: targetDate, lt: nextDay },
+        vehicule: { siteId },
+      },
+      include: {
+        vehicule: { select: { id: true, nom: true, numero_de_plaque: true } },
+        technicien: { select: { id: true, nom: true, prenom: true, specialite: true } },
+      },
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  // ─── Rapports du site du responsable ─────────────────────────────────────
+  async getMyRapports(siteId: string) {
+    return this.prisma.rapportJournalier.findMany({
+      where: { siteId },
+      include: { lignes: true },
+      orderBy: { date: 'desc' },
+    });
   }
 }

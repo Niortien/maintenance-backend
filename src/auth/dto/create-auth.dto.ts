@@ -54,3 +54,14 @@ export class ChangePasswordDto {
   @MinLength(6)
   nouveauMotDePasse: string;
 }
+
+export class LoginAdminDto {
+  @ApiProperty({ example: 'admin@gmail.com' })
+  @IsEmail({}, { message: 'Email invalide' })
+  email: string;
+
+  @ApiProperty({ example: 'Admin@123' })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+}

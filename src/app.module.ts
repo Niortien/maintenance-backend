@@ -8,10 +8,10 @@ import { TechnicienModule } from './technicien/technicien.module';
 import { InterventionModule } from './intervention/intervention.module';
 import { SiteModule } from './site/site.module';
 import { RapportModule } from './rapport/rapport.module';
-
+import { AdminModule } from './admin/admin.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), VehiculeModule, AuthModule, TechnicienModule, InterventionModule, SiteModule, RapportModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), VehiculeModule, AuthModule, TechnicienModule, InterventionModule, SiteModule, RapportModule, AdminModule],
   controllers: [AppController],
   providers: [AppService],
 })

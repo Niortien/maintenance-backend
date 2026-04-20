@@ -5,7 +5,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { JwtAdminStrategy } from './jwt-admin.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAdminGuard } from './jwt-admin.guard';
 import { DatabaseModule } from '../database/database.module';
 
 @Module({
@@ -22,8 +24,8 @@ import { DatabaseModule } from '../database/database.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard],
-  exports: [JwtAuthGuard, JwtStrategy, JwtModule],
+  providers: [AuthService, JwtStrategy, JwtAdminStrategy, JwtAuthGuard, JwtAdminGuard],
+  exports: [JwtAuthGuard, JwtAdminGuard, JwtStrategy, JwtAdminStrategy, JwtModule],
 })
 export class AuthModule {}
 

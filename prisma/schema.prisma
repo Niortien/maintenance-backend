@@ -63,6 +63,16 @@ enum CategorieVehicule {
   KB
 }
 
+enum CategorieEquipement {
+  TASSEUR
+  TRACTEUR
+  AMPLIROLL
+  MOTO_TRICYCLE
+  BP
+  KIA
+  VOITURETTE
+}
+
 enum StatutVehiculeRapport {
   OPERATIONNEL
   EN_PANNE
@@ -156,6 +166,7 @@ model Site {
   vehicules       Vehicule[]
   techniciens     Technicien[]        @relation("TechnicienSite")
   rapports        RapportJournalier[]
+  equipements     Equipement[]
   compte          ResponsableSite?
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt @map("updated_at")
@@ -196,4 +207,17 @@ model LigneRapport {
   description     String?
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt @map("updated_at")
+}
+
+model Equipement {
+  id              String             @id @default(ulid())
+  nom             String
+  categorie       CategorieEquipement
+  immatriculation String?
+  statut          Statut             @default(ACTIF)
+  image           String?
+  site            Site               @relation(fields: [siteId], references: [id])
+  siteId          String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt @map("updated_at")
 }

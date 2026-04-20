@@ -14,8 +14,9 @@ export class TechnicienService {
     });
   }
 
-  findAll() {
+  findAll(siteId: string) {
     return this.prisma.technicien.findMany({
+      where: { siteId },
       include: { interventions: true },
     });
   }

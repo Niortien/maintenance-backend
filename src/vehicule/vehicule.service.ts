@@ -16,8 +16,8 @@ export class VehiculeService {
     });
   }
 
-  async findAll() {
-    return this.prisma.vehicule.findMany();
+  async findAll(siteId: string) {
+    return this.prisma.vehicule.findMany({ where: { siteId } });
   }
 
   async findOne(id: string) {

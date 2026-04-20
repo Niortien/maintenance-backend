@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateLigneRapportDto } from './dto/create-ligne-rapport.dto';
 import { CreateRapportDto } from './dto/create-rapport.dto';
 import { UpdateRapportDto } from './dto/update-rapport.dto';
 import { RapportService } from './rapport.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CurrentResponsable, ResponsableWithSite } from 'src/auth/current-responsable.decorator';
 
 @ApiTags('rapports')
 @Controller('rapports')
@@ -15,11 +17,14 @@ export class RapportController {
     return this.rapportService.create(createRapportDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  @ApiQuery({ name: 'siteId', required: false })
   @ApiQuery({ name: 'date', required: false, description: 'Date ISO (ex: 2026-04-13)' })
-  findAll(@Query('siteId') siteId?: string, @Query('date') date?: string) {
-    return this.rapportService.findAll(siteId, date);
+  findAll(
+    @CurrentResponsable() user: ResponsableWithSite,
+    @Query('date') date?: string,
+  ) {
+    return this.rapportService.findAll(user.siteId, date);
   }
 
   @Get('statistics')

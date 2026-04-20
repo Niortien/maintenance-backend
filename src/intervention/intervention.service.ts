@@ -43,8 +43,11 @@ export class InterventionService {
     });
   }
 
-  async findAll() {
-    return this.prisma.intervention.findMany({ include: { vehicule: true, technicien: true } });
+  async findAll(siteId: string) {
+    return this.prisma.intervention.findMany({
+      where: { vehicule: { siteId } },
+      include: { vehicule: true, technicien: true },
+    });
   }
 
   async findOne(id: string) {

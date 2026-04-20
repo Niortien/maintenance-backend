@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { VehiculeService } from './vehicule.service';
 import { CreateVehiculeDto } from './dto/create-vehicule.dto';
 import { UpdateVehiculeDto } from './dto/update-vehicule.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CurrentResponsable, ResponsableWithSite } from 'src/auth/current-responsable.decorator';
 
 @Controller('vehicule')
 export class VehiculeController {
@@ -12,9 +14,10 @@ export class VehiculeController {
     return this.vehiculeService.create(createVehiculeDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.vehiculeService.findAll();
+  findAll(@CurrentResponsable() user: ResponsableWithSite) {
+    return this.vehiculeService.findAll(user.siteId);
   }
 
   @Get('statistics')

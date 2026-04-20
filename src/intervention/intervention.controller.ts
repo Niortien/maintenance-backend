@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { InterventionService } from './intervention.service';
 import { CreateInterventionDto } from './dto/create-intervention.dto';
 import { UpdateInterventionDto } from './dto/update-intervention.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CurrentResponsable, ResponsableWithSite } from 'src/auth/current-responsable.decorator';
 
 @Controller('intervention')
 export class InterventionController {
@@ -12,9 +14,10 @@ export class InterventionController {
     return this.interventionService.create(createInterventionDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.interventionService.findAll();
+  findAll(@CurrentResponsable() user: ResponsableWithSite) {
+    return this.interventionService.findAll(user.siteId);
   }
 
   @Get('statistics')

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DatabaseModule } from './database/database.module';
 import { VehiculeModule } from './vehicule/vehicule.module';
 import { AuthModule } from './auth/auth.module';
 import { TechnicienModule } from './technicien/technicien.module';
@@ -13,7 +14,7 @@ import { EquipementModule } from './equipement/equipement.module';
 import { SituationModule } from './situation/situation.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), VehiculeModule, AuthModule, TechnicienModule, InterventionModule, SiteModule, RapportModule, AdminModule, EquipementModule, SituationModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, VehiculeModule, AuthModule, TechnicienModule, InterventionModule, SiteModule, RapportModule, AdminModule, EquipementModule, SituationModule],
   controllers: [AppController],
   providers: [AppService],
 })

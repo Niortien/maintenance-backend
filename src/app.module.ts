@@ -10,9 +10,10 @@ import { SiteModule } from './site/site.module';
 import { RapportModule } from './rapport/rapport.module';
 import { AdminModule } from './admin/admin.module';
 import { EquipementModule } from './equipement/equipement.module';
+import { SituationModule } from './situation/situation.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), VehiculeModule, AuthModule, TechnicienModule, InterventionModule, SiteModule, RapportModule, AdminModule, EquipementModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), VehiculeModule, AuthModule, TechnicienModule, InterventionModule, SiteModule, RapportModule, AdminModule, EquipementModule, SituationModule],
   controllers: [AppController],
   providers: [AppService],
 })

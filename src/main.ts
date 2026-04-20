@@ -13,11 +13,13 @@ async function bootstrap() {
 
    const config = new DocumentBuilder()
     .setTitle('Maintenance API')
+    
     .setDescription('The Maintenance API description')
     .setVersion('1.0')
     .addTag('cats')
 
     
+
 
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);

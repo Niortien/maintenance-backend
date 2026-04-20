@@ -167,22 +167,24 @@ model Site {
   techniciens     Technicien[]        @relation("TechnicienSite")
   rapports        RapportJournalier[]
   equipements     Equipement[]
+  situations      Situation[]
   compte          ResponsableSite?
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt @map("updated_at")
 }
 
 model ResponsableSite {
-  id        String   @id @default(ulid())
-  email     String   @unique
+  id        String      @id @default(ulid())
+  email     String      @unique
   password  String
   nom       String
   prenom    String
   telephone String?
-  site      Site     @relation(fields: [siteId], references: [id])
-  siteId    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @map("updated_at")
+  site      Site        @relation(fields: [siteId], references: [id])
+  siteId    String      @unique
+  situations Situation[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt @map("updated_at")
 }
 
 model RapportJournalier {
@@ -218,6 +220,34 @@ model Equipement {
   image           String?
   site            Site               @relation(fields: [siteId], references: [id])
   siteId          String
+  situations      Situation[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt @map("updated_at")
+}
+
+model Situation {
+  id            String             @id @default(ulid())
+  nom           String             // "SITUATION T115" — dérivé du nom de l'équipement
+  description   String             // description du problème + diagnostic
+  image         String             // image obligatoire
+  equipement    Equipement         @relation(fields: [equipementId], references: [id])
+  equipementId  String
+  site          Site               @relation(fields: [siteId], references: [id])
+  siteId        String
+  responsable   ResponsableSite    @relation(fields: [responsableId], references: [id])
+  responsableId String
+  besoins       BesoinLogistique[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+}
+
+model BesoinLogistique {
+  id           String    @id @default(ulid())
+  designation  String    // ex: "Plaquette hydrauliques"
+  quantite     Float     // ex: 2
+  prixUnitaire Float     // ex: 8000
+  situation    Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  situationId  String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 }

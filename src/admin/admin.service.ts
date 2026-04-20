@@ -1,5 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import * as bcrypt from 'bcrypt';
+import { RegisterResponsableDto } from '../auth/dto/create-auth.dto';
 
 @Injectable()
 export class AdminService {
@@ -76,5 +78,45 @@ export class AdminService {
       },
       orderBy: { nom: 'asc' },
     });
+  }
+
+  // ─── Liste tous les responsables ─────────────────────────────────────────
+  async getResponsables() {
+    return this.prisma.responsableSite.findMany({
+      select: {
+        id: true, nom: true, prenom: true, email: true, telephone: true, createdAt: true,
+        site: { select: { id: true, nom: true, code: true, couleur: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // ─── Créer un responsable de site ────────────────────────────────────────
+  async createResponsable(dto: RegisterResponsableDto) {
+    const site = await this.prisma.site.findUnique({ where: { id: dto.siteId } });
+    if (!site) throw new NotFoundException(`Site introuvable: ${dto.siteId}`);
+
+    const existingEmail = await this.prisma.responsableSite.findUnique({ where: { email: dto.email } });
+    if (existingEmail) throw new ConflictException('Cet email est déjà utilisé');
+
+    const existingSite = await this.prisma.responsableSite.findUnique({ where: { siteId: dto.siteId } });
+    if (existingSite) throw new ConflictException('Ce site a déjà un responsable assigné');
+
+    const hash = await bcrypt.hash(dto.password, 10);
+
+    const responsable = await this.prisma.responsableSite.create({
+      data: {
+        nom: dto.nom, prenom: dto.prenom,
+        email: dto.email, password: hash,
+        telephone: dto.telephone ?? null,
+        siteId: dto.siteId,
+      },
+      select: {
+        id: true, nom: true, prenom: true, email: true, telephone: true, createdAt: true,
+        site: { select: { id: true, nom: true, code: true, couleur: true } },
+      },
+    });
+
+    return responsable;
   }
 }

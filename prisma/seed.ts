@@ -270,21 +270,22 @@ async function main() {
     });
     console.log(`✅ Site "${site.nom}" (${site.code}) — id: ${siteRecord.id}`);
 
-    // 2. Upsert compte responsable
-    const existing = await prisma.responsableSite.findUnique({ where: { email: site.responsable.email } });
-    if (!existing) {
-      const hash = await bcrypt.hash(site.responsable.motDePasse, 10);
-      await prisma.responsableSite.create({
-        data: {
-          email: site.responsable.email, password: hash,
-          nom: site.responsable.nom, prenom: site.responsable.prenom,
-          telephone: site.responsable.telephone ?? null, siteId: siteRecord.id,
-        },
-      });
-      console.log(`   👤 Responsable créé → ${site.responsable.email}`);
-    } else {
-      console.log(`   👤 Responsable déjà existant → ignoré`);
-    }
+    // 2. Upsert compte responsable (force mise à jour du mot de passe)
+    const hash = await bcrypt.hash(site.responsable.motDePasse, 10);
+    await prisma.responsableSite.upsert({
+      where: { email: site.responsable.email },
+      update: {
+        password: hash,
+        nom: site.responsable.nom, prenom: site.responsable.prenom,
+        telephone: site.responsable.telephone ?? null, siteId: siteRecord.id,
+      },
+      create: {
+        email: site.responsable.email, password: hash,
+        nom: site.responsable.nom, prenom: site.responsable.prenom,
+        telephone: site.responsable.telephone ?? null, siteId: siteRecord.id,
+      },
+    });
+    console.log(`   👤 Responsable upsert → ${site.responsable.email}`);
 
     // 3. Véhicules
     for (const v of site.vehicules) {

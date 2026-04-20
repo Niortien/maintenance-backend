@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { JwtAdminGuard } from '../auth/jwt-admin.guard';
+import { RegisterResponsableDto } from '../auth/dto/create-auth.dto';
 
 @ApiTags('Admin')
 @ApiBearerAuth()
@@ -46,5 +47,19 @@ export class AdminController {
   @Get('sites/:siteId/techniciens')
   getSiteTechniciens(@Param('siteId') siteId: string) {
     return this.adminService.getSiteTechniciens(siteId);
+  }
+
+  // GET /admin/responsables
+  @ApiOperation({ summary: 'Liste tous les responsables de site' })
+  @Get('responsables')
+  getResponsables() {
+    return this.adminService.getResponsables();
+  }
+
+  // POST /admin/responsables
+  @ApiOperation({ summary: 'Créer un responsable de site' })
+  @Post('responsables')
+  createResponsable(@Body() dto: RegisterResponsableDto) {
+    return this.adminService.createResponsable(dto);
   }
 }

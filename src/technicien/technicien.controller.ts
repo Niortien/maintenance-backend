@@ -1,17 +1,73 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { randomUUID } from 'crypto';
+import { ApiConsumes, ApiBody, ApiTags } from '@nestjs/swagger';
 import { TechnicienService } from './technicien.service';
 import { CreateTechnicienDto } from './dto/create-technicien.dto';
 import { UpdateTechnicienDto } from './dto/update-technicien.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CurrentResponsable, ResponsableWithSite } from 'src/auth/current-responsable.decorator';
 
+const photoStorage = diskStorage({
+  destination: './uploads/techniciens',
+  filename: (_req, file, cb) => {
+    cb(null, `${randomUUID()}${extname(file.originalname)}`);
+  },
+});
+
+const photoFilePipe = new ParseFilePipe({
+  validators: [
+    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+    new FileTypeValidator({ fileType: /^image\/(jpeg|png|webp|gif)$/, skipMagicNumbersValidation: true }),
+  ],
+  fileIsRequired: false,
+});
+
+@ApiTags('Techniciens')
 @Controller('technicien')
 export class TechnicienController {
   constructor(private readonly technicienService: TechnicienService) {}
 
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['nom', 'prenom', 'email', 'telephone', 'specialite', 'siteId'],
+      properties: {
+        nom: { type: 'string' },
+        prenom: { type: 'string' },
+        email: { type: 'string' },
+        telephone: { type: 'string' },
+        statut: { type: 'string', enum: ['ACTIF', 'EN_MAINTENANCE', 'INACTIF'] },
+        specialite: { type: 'string', enum: ['MECANIQUE_GENERALE', 'ELECTRICITE_AUTOMOBILE', 'PNEUMATIQUE', 'DIAGNOSTIC_ELECTRONIQUE', 'SYSTEME_FREINAGE', 'CLIMATISATION', 'TRANSMISSION', 'HYDRAULIQUE', 'CARROSSERIE', 'PEINTURE'] },
+        siteId: { type: 'string' },
+        photo: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('photo', { storage: photoStorage }))
   @Post()
-  create(@Body() createTechnicienDto: CreateTechnicienDto) {
-    return this.technicienService.create(createTechnicienDto);
+  create(
+    @Body() createTechnicienDto: CreateTechnicienDto,
+    @UploadedFile(photoFilePipe) photo?: Express.Multer.File,
+  ) {
+    return this.technicienService.create(createTechnicienDto, photo);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -30,9 +86,30 @@ export class TechnicienController {
     return this.technicienService.findOne(id);
   }
 
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        nom: { type: 'string' },
+        prenom: { type: 'string' },
+        email: { type: 'string' },
+        telephone: { type: 'string' },
+        statut: { type: 'string', enum: ['ACTIF', 'EN_MAINTENANCE', 'INACTIF'] },
+        specialite: { type: 'string', enum: ['MECANIQUE_GENERALE', 'ELECTRICITE_AUTOMOBILE', 'PNEUMATIQUE', 'DIAGNOSTIC_ELECTRONIQUE', 'SYSTEME_FREINAGE', 'CLIMATISATION', 'TRANSMISSION', 'HYDRAULIQUE', 'CARROSSERIE', 'PEINTURE'] },
+        siteId: { type: 'string' },
+        photo: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('photo', { storage: photoStorage }))
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTechnicienDto: UpdateTechnicienDto) {
-    return this.technicienService.update(id, updateTechnicienDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateTechnicienDto: UpdateTechnicienDto,
+    @UploadedFile(photoFilePipe) photo?: Express.Multer.File,
+  ) {
+    return this.technicienService.update(id, updateTechnicienDto, photo);
   }
 
   @Delete(':id')

@@ -132,8 +132,8 @@ model Technicien {
   statut             Statut         @default(ACTIF)
   specialite         Specialite
   interventions      Intervention[]
-  site               Site?          @relation("TechnicienSite", fields: [siteId], references: [id])
-  siteId             String?
+  site               Site           @relation("TechnicienSite", fields: [siteId], references: [id])
+  siteId             String
   sitesResponsable   Site[]         @relation("ResponsableSite")
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt @map("updated_at")

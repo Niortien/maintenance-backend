@@ -31,4 +31,9 @@ export class CreateTechnicienDto {
   @IsNotEmpty()
   @IsEnum(Specialite)
   specialite: Specialite;
+
+  @ApiProperty({ example: '01JXXXXXXXXXXXXXXXXXXXXXXXXX', description: 'ID du site auquel appartient le technicien' })
+  @IsNotEmpty()
+  @IsString()
+  siteId: string;
 }

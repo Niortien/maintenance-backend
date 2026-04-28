@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -8,12 +8,12 @@ import {
   Body,
   UseGuards,
   UseInterceptors,
-  UploadedFile,
+  UploadedFiles,
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
@@ -33,6 +33,7 @@ import { JwtAdminGuard } from 'src/auth/jwt-admin.guard';
 import { SituationService } from './situation.service';
 import { CreateSituationDto } from './dto/create-situation.dto';
 import { UpdateSituationDto } from './dto/update-situation.dto';
+import { UpdateStatutSituationDto } from './dto/update-statut-situation.dto';
 
 const imageStorage = diskStorage({
   destination: './uploads/situations',
@@ -43,7 +44,7 @@ const imageStorage = diskStorage({
 
 const imageFilePipeRequired = new ParseFilePipe({
   validators: [
-    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5 MB
+    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
     new FileTypeValidator({ fileType: /^image\/(jpeg|png|webp|gif)$/, skipMagicNumbersValidation: true }),
   ],
   fileIsRequired: true,
@@ -57,22 +58,20 @@ const imageFilePipeOptional = new ParseFilePipe({
   fileIsRequired: false,
 });
 
-@ApiTags('Situations — Rapports de panne équipements')
+@ApiTags('Situations — Rapports de panne equipements')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('situation')
 export class SituationController {
   constructor(private readonly situationService: SituationService) {}
 
-  // GET /situation — situations du site du responsable
   @ApiOperation({ summary: 'Lister les situations du site' })
   @Get()
   findAll(@CurrentResponsable() user: ResponsableWithSite) {
     return this.situationService.findAllBySite(user.siteId);
   }
 
-  // GET /situation/:id — détail d'une situation
-  @ApiOperation({ summary: 'Détail d\'une situation' })
+  @ApiOperation({ summary: "Detail d'une situation" })
   @Get(':id')
   findOne(
     @Param('id') id: string,
@@ -81,74 +80,73 @@ export class SituationController {
     return this.situationService.findOneBySite(id, user.siteId);
   }
 
-  // POST /situation — créer une situation (multipart/form-data)
-  @ApiOperation({ summary: 'Créer une situation de panne pour un équipement' })
+  @ApiOperation({ summary: 'Creer une situation de panne (plusieurs images)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'Données de la situation + image obligatoire',
     schema: {
       type: 'object',
       required: ['equipementId', 'description', 'image'],
       properties: {
-        equipementId: {
-          type: 'string',
-          description: 'ID de l\'équipement concerné',
-        },
-        description: {
-          type: 'string',
-          example:
-            "Le système hydraulique ne marche pas.\nLe diagnostic montre que la plaquette des circuits d'électricité hydraulique est défaillante.",
-        },
-        besoinsLogistiques: {
-          type: 'string',
-          description:
-            'Tableau JSON stringifié des besoins logistiques',
-          example:
-            '[{"designation":"Plaquette hydrauliques","quantite":1,"prixUnitaire":25000},{"designation":"Relais","quantite":2,"prixUnitaire":8000},{"designation":"Main d\'oeuvre de l\'electricien","quantite":1,"prixUnitaire":10000}]',
-        },
-        image: { type: 'string', format: 'binary' },
+        equipementId: { type: 'string' },
+        description: { type: 'string' },
+        besoinsLogistiques: { type: 'string', description: 'JSON stringifie' },
+        image: { type: 'array', items: { type: 'string', format: 'binary' }, description: 'Une ou plusieurs images (meme champ repete)' },
       },
     },
   })
-  @UseInterceptors(FileInterceptor('image', { storage: imageStorage }))
+  @UseInterceptors(FilesInterceptor('image', 10, { storage: imageStorage }))
   @Post()
   create(
     @CurrentResponsable() user: ResponsableWithSite,
     @Body() dto: CreateSituationDto,
-    @UploadedFile(imageFilePipeRequired) image: Express.Multer.File,
+    @UploadedFiles(imageFilePipeRequired) images: Express.Multer.File[],
   ) {
-    return this.situationService.create(user.siteId, user.id, dto, image);
+    return this.situationService.create(user.siteId, user.id, dto, images);
   }
 
-  // PATCH /situation/:id — modifier une situation
-  @ApiOperation({ summary: 'Modifier une situation' })
+  @ApiOperation({ summary: 'Modifier une situation (ajoute les nouvelles images)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'Champs à modifier + nouvelle image optionnelle',
     schema: {
       type: 'object',
       properties: {
         description: { type: 'string' },
-        besoinsLogistiques: {
-          type: 'string',
-          description: 'Remplace entièrement la liste des besoins (JSON stringifié)',
-        },
-        image: { type: 'string', format: 'binary' },
+        besoinsLogistiques: { type: 'string', description: 'JSON stringifie — remplace les besoins' },
+        image: { type: 'array', items: { type: 'string', format: 'binary' }, description: 'Nouvelles images a ajouter (meme champ repete)' },
       },
     },
   })
-  @UseInterceptors(FileInterceptor('image', { storage: imageStorage }))
+  @UseInterceptors(FilesInterceptor('image', 10, { storage: imageStorage }))
   @Patch(':id')
   update(
     @Param('id') id: string,
     @CurrentResponsable() user: ResponsableWithSite,
     @Body() dto: UpdateSituationDto,
-    @UploadedFile(imageFilePipeOptional) image?: Express.Multer.File,
+    @UploadedFiles(imageFilePipeOptional) images?: Express.Multer.File[],
   ) {
-    return this.situationService.update(id, user.siteId, dto, image);
+    return this.situationService.update(id, user.siteId, dto, images);
   }
 
-  // DELETE /situation/:id — supprimer une situation
+  @ApiOperation({ summary: "Changer le statut d'une situation (EN_COURS ou TERMINEE)" })
+  @Patch(':id/statut')
+  updateStatut(
+    @Param('id') id: string,
+    @CurrentResponsable() user: ResponsableWithSite,
+    @Body() dto: UpdateStatutSituationDto,
+  ) {
+    return this.situationService.updateStatutByResponsable(id, user.siteId, dto);
+  }
+
+  @ApiOperation({ summary: "Supprimer une image d'une situation" })
+  @Delete(':id/images/:imageId')
+  removeImage(
+    @Param('id') id: string,
+    @Param('imageId') imageId: string,
+    @CurrentResponsable() user: ResponsableWithSite,
+  ) {
+    return this.situationService.removeImage(id, imageId, user.siteId);
+  }
+
   @ApiOperation({ summary: 'Supprimer une situation' })
   @Delete(':id')
   remove(
@@ -159,7 +157,7 @@ export class SituationController {
   }
 }
 
-// ─────────────────── Admin controller ───────────────────────────────────────
+// ─────────────────────────── Admin controller ───────────────────────────────
 
 @ApiTags('Situations — Admin')
 @ApiBearerAuth()
@@ -172,5 +170,20 @@ export class SituationAdminController {
   @Get()
   findAll() {
     return this.situationService.findAll();
+  }
+
+  @ApiOperation({ summary: "Detail d'une situation (admin)" })
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.situationService.findOneAdmin(id);
+  }
+
+  @ApiOperation({ summary: "Changer le statut d'une situation (admin — tous statuts)" })
+  @Patch(':id/statut')
+  updateStatut(
+    @Param('id') id: string,
+    @Body() dto: UpdateStatutSituationDto,
+  ) {
+    return this.situationService.updateStatutByAdmin(id, dto);
   }
 }

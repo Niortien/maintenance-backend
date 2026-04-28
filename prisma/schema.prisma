@@ -31,6 +31,13 @@ enum StatutIntervention {
   ANNULEE
 }
 
+enum StatutSituation {
+  EN_ATTENTE
+  EN_COURS
+  VALIDEE
+  TERMINEE
+}
+
 enum Specialite {
   MECANIQUE_GENERALE
   ELECTRICITE_AUTOMOBILE
@@ -229,7 +236,8 @@ model Situation {
   id            String             @id @default(ulid())
   nom           String             // "SITUATION T115" — dérivé du nom de l'équipement
   description   String             // description du problème + diagnostic
-  image         String             // image obligatoire
+  statut        StatutSituation    @default(EN_ATTENTE)
+  images        SituationImage[]   // plusieurs images possibles
   equipement    Equipement         @relation(fields: [equipementId], references: [id])
   equipementId  String
   site          Site               @relation(fields: [siteId], references: [id])
@@ -237,8 +245,17 @@ model Situation {
   responsable   ResponsableSite    @relation(fields: [responsableId], references: [id])
   responsableId String
   besoins       BesoinLogistique[]
+  notifications Notification[]
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt @map("updated_at")
+}
+
+model SituationImage {
+  id          String    @id @default(ulid())
+  url         String
+  situation   Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  situationId String
+  createdAt   DateTime  @default(now())
 }
 
 model BesoinLogistique {
@@ -250,4 +267,13 @@ model BesoinLogistique {
   situationId  String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt @map("updated_at")
+}
+
+model Notification {
+  id          String     @id @default(ulid())
+  message     String
+  lu          Boolean    @default(false)
+  situation   Situation? @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  situationId String?
+  createdAt   DateTime   @default(now())
 }

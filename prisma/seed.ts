@@ -108,12 +108,20 @@ const sites: SiteSeed[] = [
     couleur: '#f59e0b',
     responsable: { nom: 'Yao', prenom: 'Lambert', email: 'responsable.bonoua@sate.ci', motDePasse: 'Bonoua@2026', telephone: '+22507000002' },
     vehicules: [
-      { nom: 'Tasseur T97',   numero_de_plaque: 'T97',    annee: 2019, type: 'EQUIPEMENT', modele: 'Bomag BW 211 D-5', statut: 'ACTIF' },
-      { nom: 'Tasseur T118',  numero_de_plaque: 'T118',   annee: 2021, type: 'EQUIPEMENT', modele: 'Dynapac CA2500D', statut: 'ACTIF' },
-      { nom: 'Tasseur T87',   numero_de_plaque: 'T87',    annee: 2015, type: 'EQUIPEMENT', modele: 'Hamm HD 120i VV', statut: 'EN_MAINTENANCE' },
-      { nom: 'Ampliroll A29', numero_de_plaque: 'A29',    annee: 2018, type: 'CAMINON',    modele: 'Mercedes Actros', statut: 'EN_MAINTENANCE' },
-      { nom: 'Ampliroll A37', numero_de_plaque: 'A37',    annee: 2016, type: 'CAMINON',    modele: 'Renault Trucks T', statut: 'EN_MAINTENANCE' },
-      { nom: 'BP BP06',       numero_de_plaque: 'BP06',   annee: 2020, type: 'EQUIPEMENT', modele: 'Caterpillar CS11', statut: 'EN_MAINTENANCE' },
+      { nom: 'Tasseur T97',    numero_de_plaque: 'T97',    annee: 2019, type: 'EQUIPEMENT', modele: 'Bomag BW 211 D-5',      statut: 'ACTIF' },
+      { nom: 'Tasseur T118',   numero_de_plaque: 'T118',   annee: 2021, type: 'EQUIPEMENT', modele: 'Dynapac CA2500D',        statut: 'ACTIF' },
+      { nom: 'Tasseur T87',    numero_de_plaque: 'T87',    annee: 2015, type: 'EQUIPEMENT', modele: 'Hamm HD 120i VV',        statut: 'EN_MAINTENANCE' },
+      { nom: 'Tasseur T94',    numero_de_plaque: 'T94',    annee: 2016, type: 'EQUIPEMENT', modele: 'Bomag BW 213 DH-4',      statut: 'EN_MAINTENANCE' },
+      { nom: 'Tasseur T102',   numero_de_plaque: 'T102',   annee: 2017, type: 'EQUIPEMENT', modele: 'Dynapac CA3000D',        statut: 'EN_MAINTENANCE' },
+      { nom: 'Tasseur T113',   numero_de_plaque: 'T113',   annee: 2018, type: 'EQUIPEMENT', modele: 'Hamm HD 130i VV',        statut: 'EN_MAINTENANCE' },
+      { nom: 'Ampliroll A29',  numero_de_plaque: 'A29',    annee: 2018, type: 'CAMINON',    modele: 'Mercedes Actros',        statut: 'EN_MAINTENANCE' },
+      { nom: 'Ampliroll A30',  numero_de_plaque: 'A30',    annee: 2018, type: 'CAMINON',    modele: 'Mercedes Actros 2545',   statut: 'EN_MAINTENANCE' },
+      { nom: 'Ampliroll A37',  numero_de_plaque: 'A37',    annee: 2016, type: 'CAMINON',    modele: 'Renault Trucks T',       statut: 'EN_MAINTENANCE' },
+      { nom: 'Ampliroll A43',  numero_de_plaque: 'A43',    annee: 2015, type: 'CAMINON',    modele: 'Volvo FH',               statut: 'EN_MAINTENANCE' },
+      { nom: 'Ampliroll A44',  numero_de_plaque: 'A44',    annee: 2019, type: 'CAMINON',    modele: 'MAN TGS 26.440',         statut: 'EN_MAINTENANCE' },
+      { nom: 'Ampliroll A45',  numero_de_plaque: 'A45',    annee: 2020, type: 'CAMINON',    modele: 'Scania R 450',           statut: 'EN_MAINTENANCE' },
+      { nom: 'PC PC1477',      numero_de_plaque: 'PC1477', annee: 2017, type: 'EQUIPEMENT', modele: 'Caterpillar 320D',       statut: 'EN_MAINTENANCE' },
+      { nom: 'BP BP06',        numero_de_plaque: 'BP06',   annee: 2020, type: 'EQUIPEMENT', modele: 'Caterpillar CS11',       statut: 'EN_MAINTENANCE' },
     ],
     techniciens: [
       { nom: 'Assié',    prenom: 'Christophe', email: 'christophe.assie.bonoua@sate.ci',   telephone: '+22501000201', statut: 'ACTIF', specialite: 'MECANIQUE_GENERALE' },
@@ -260,6 +268,15 @@ const sites: SiteSeed[] = [
 
 async function main() {
   console.log('🌱 Début du seed...\n');
+
+  // ─── Admin ────────────────────────────────────────────────────────────────
+  const adminHash = await bcrypt.hash('Admin2026@', 10);
+  await prisma.admin.upsert({
+    where:  { email: 'admin@gmail.com' },
+    update: { password: adminHash },
+    create: { email: 'admin@gmail.com', password: adminHash },
+  });
+  console.log('🔑 Admin upsert → admin@gmail.com\n');
 
   for (const site of sites) {
     // 1. Upsert du site

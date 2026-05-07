@@ -237,7 +237,7 @@ export class SituationService {
     const situation = await this.prisma.situation.findUnique({ where: { id } });
     if (!situation) throw new NotFoundException(`Situation '${id}' introuvable`);
 
-    return this.prisma.situation.update({
+    const updated = await this.prisma.situation.update({
       where: { id },
       data: { statut: dto.statut },
       include: {
@@ -248,6 +248,14 @@ export class SituationService {
         responsable: { select: { id: true, nom: true, prenom: true } },
       },
     });
+
+    // Marquer automatiquement les notifications liées à cette situation comme lues
+    await this.prisma.notification.updateMany({
+      where: { situationId: id, lu: false },
+      data: { lu: true },
+    });
+
+    return updated;
   }
 
   // ─────────────────────────────── Admin ──────────────────────────────────

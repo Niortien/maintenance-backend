@@ -266,4 +266,32 @@ export class AdminService {
     await this.prisma.responsableSite.delete({ where: { id } });
     return { message: `Responsable ${id} supprime avec succes` };
   }
+
+  // ─── HISTORIQUE TECHNICIEN (admin) ─────────────────────────────────────────
+
+  async getTechnicienDetails(technicienId: string) {
+    const technicien = await this.prisma.technicien.findUnique({
+      where: { id: technicienId },
+      include: {
+        site: { select: { id: true, nom: true, code: true } },
+        interventions: {
+          orderBy: { date: 'desc' },
+          take: 10,
+          select: { id: true, date: true, statut: true, description: true, designation: true },
+        },
+        historique: { orderBy: { dateDebut: 'desc' } },
+      },
+    });
+    if (!technicien) throw new NotFoundException(`Technicien introuvable: ${technicienId}`);
+    return technicien;
+  }
+
+  async getTechnicienHistorique(technicienId: string) {
+    const exists = await this.prisma.technicien.findUnique({ where: { id: technicienId }, select: { id: true } });
+    if (!exists) throw new NotFoundException(`Technicien introuvable: ${technicienId}`);
+    return this.prisma.historiqueStatutTechnicien.findMany({
+      where: { technicienId },
+      orderBy: { dateDebut: 'desc' },
+    });
+  }
 }

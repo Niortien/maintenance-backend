@@ -101,4 +101,18 @@ export class AdminController {
   deleteResponsable(@Param('id') id: string) {
     return this.adminService.deleteResponsable(id);
   }
+
+  // ─── HISTORIQUE TECHNICIEN (admin) ─────────────────────────────────────
+
+  @ApiOperation({ summary: 'Détails complets d’un technicien (infos + historique + interventions)' })
+  @Get('techniciens/:id/details')
+  getTechnicienDetails(@Param('id') id: string) {
+    return this.adminService.getTechnicienDetails(id);
+  }
+
+  @ApiOperation({ summary: 'Historique des statuts d’un technicien (congés, absences, maladies…)' })
+  @Get('techniciens/:id/historique')
+  getTechnicienHistorique(@Param('id') id: string) {
+    return this.adminService.getTechnicienHistorique(id);
+  }
 }

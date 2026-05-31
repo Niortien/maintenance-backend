@@ -143,6 +143,7 @@ model Technicien {
   specialite         Specialite
   photo              String?
   interventions      Intervention[]
+  historique         HistoriqueStatutTechnicien[]
   site               Site           @relation("TechnicienSite", fields: [siteId], references: [id])
   siteId             String
   sitesResponsable   Site[]         @relation("ResponsableSite")
@@ -288,4 +289,17 @@ model Notification {
   situation   Situation? @relation(fields: [situationId], references: [id], onDelete: Cascade)
   situationId String?
   createdAt   DateTime   @default(now())
+}
+
+model HistoriqueStatutTechnicien {
+  id            String            @id @default(ulid())
+  technicien    Technicien        @relation(fields: [technicienId], references: [id], onDelete: Cascade)
+  technicienId  String
+  statut        StatutTechnicien
+  dateDebut     DateTime
+  dateFin       DateTime?
+  lieu          String?
+  notes         String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt @map("updated_at")
 }

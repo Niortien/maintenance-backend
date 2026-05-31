@@ -21,6 +21,7 @@ import { ApiConsumes, ApiBody, ApiTags } from '@nestjs/swagger';
 import { TechnicienService } from './technicien.service';
 import { CreateTechnicienDto } from './dto/create-technicien.dto';
 import { UpdateTechnicienDto } from './dto/update-technicien.dto';
+import { CreateHistoriqueDto, CloturerHistoriqueDto } from './dto/create-historique.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CurrentResponsable, ResponsableWithSite } from 'src/auth/current-responsable.decorator';
 
@@ -117,5 +118,38 @@ export class TechnicienController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.technicienService.remove(id);
+  }
+
+  // ─── HISTORIQUE ───────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/details')
+  getTechnicienDetails(@Param('id') id: string) {
+    return this.technicienService.getTechnicienDetails(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/historique')
+  getHistorique(@Param('id') id: string) {
+    return this.technicienService.getHistorique(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/historique')
+  addHistorique(
+    @Param('id') id: string,
+    @Body() dto: CreateHistoriqueDto,
+  ) {
+    return this.technicienService.addHistorique(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/historique/:historiqueId/cloturer')
+  cloturerHistorique(
+    @Param('id') id: string,
+    @Param('historiqueId') historiqueId: string,
+    @Body() dto: CloturerHistoriqueDto,
+  ) {
+    return this.technicienService.cloturerHistorique(id, historiqueId, dto);
   }
 }

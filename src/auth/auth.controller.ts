@@ -1,16 +1,22 @@
 import {
-  Body, Controller, Get, Patch, Post, Query, UseGuards,
+  Body, Controller, Get, Patch, Post, Query, Req, Res, UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { ChangePasswordDto, LoginAdminDto, LoginDto, RegisterResponsableDto } from './dto/create-auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentResponsable, ResponsableWithSite } from './current-responsable.decorator';
+import { GoogleAuthGuard } from './google-auth.guard';
+import { ConfigService } from '@nestjs/config';
+import { Request, Response } from 'express';
 
 @ApiTags('Auth — Responsables de site')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
 
   // POST /auth/login
   @ApiOperation({ summary: 'Connexion responsable de site' })
@@ -100,5 +106,26 @@ export class AuthController {
   @Get('me/rapports')
   getMyRapports(@CurrentResponsable() user: ResponsableWithSite) {
     return this.authService.getMyRapports(user.siteId);
+  }
+
+  // ─── Google OAuth ──────────────────────────────────────────────────────────
+
+  // GET /auth/google  — redirige vers la page de consentement Google
+  @ApiOperation({ summary: 'Connexion via Google OAuth' })
+  @UseGuards(GoogleAuthGuard)
+  @Get('google')
+  googleLogin() {
+    // Passport redirige automatiquement vers Google
+  }
+
+  // GET /auth/google/callback  — callback après authentification Google
+  @ApiOperation({ summary: 'Callback Google OAuth' })
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/callback')
+  googleCallback(@Req() req: Request, @Res() res: Response) {
+    const responsable = req.user as any;
+    const token = this.authService.generateTokenForResponsable(responsable);
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+    return res.redirect(`${frontendUrl}/auth/google/callback?token=${token}`);
   }
 }

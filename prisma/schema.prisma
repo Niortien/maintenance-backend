@@ -184,7 +184,8 @@ model Site {
 model ResponsableSite {
   id        String      @id @default(ulid())
   email     String      @unique
-  password  String
+  password  String?
+  googleId  String?     @unique
   nom       String
   prenom    String
   telephone String?

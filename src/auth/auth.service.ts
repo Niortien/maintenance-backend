@@ -5,6 +5,13 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+
+export interface GoogleUserProfile {
+  googleId: string;
+  email: string;
+  nom: string;
+  prenom: string;
+}
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -32,6 +39,10 @@ export class AuthService {
     });
 
     if (!responsable) throw new UnauthorizedException('Email ou mot de passe incorrect');
+
+    if (!responsable.password) {
+      throw new UnauthorizedException('Ce compte utilise la connexion Google. Veuillez vous connecter avec Google.');
+    }
 
     const passwordOk = await bcrypt.compare(dto.password, responsable.password);
     if (!passwordOk) throw new UnauthorizedException('Email ou mot de passe incorrect');
@@ -132,6 +143,10 @@ export class AuthService {
   async changePassword(responsableId: string, dto: ChangePasswordDto) {
     const responsable = await this.prisma.responsableSite.findUnique({ where: { id: responsableId } });
     if (!responsable) throw new NotFoundException('Responsable introuvable');
+
+    if (!responsable.password) {
+      throw new BadRequestException('Ce compte utilise la connexion Google et ne possède pas de mot de passe.');
+    }
 
     const ok = await bcrypt.compare(dto.ancienMotDePasse, responsable.password);
     if (!ok) throw new BadRequestException('Ancien mot de passe incorrect');
@@ -260,5 +275,48 @@ export class AuthService {
       include: { lignes: true },
       orderBy: { date: 'desc' },
     });
+  }
+
+  // ─── Google OAuth ──────────────────────────────────────────────────────────
+  /** Called by GoogleStrategy.validate() — finds or links the responsable account */
+  async validateGoogleUser(profile: GoogleUserProfile) {
+    // 1. Try to find by googleId
+    let responsable = await this.prisma.responsableSite.findUnique({
+      where: { googleId: profile.googleId },
+      include: { site: { select: { id: true, nom: true, code: true, region: true, couleur: true } } },
+    });
+
+    if (responsable) return responsable;
+
+    // 2. Try to find by email and link the googleId
+    responsable = await this.prisma.responsableSite.findUnique({
+      where: { email: profile.email },
+      include: { site: { select: { id: true, nom: true, code: true, region: true, couleur: true } } },
+    });
+
+    if (responsable) {
+      responsable = await this.prisma.responsableSite.update({
+        where: { id: responsable.id },
+        data: { googleId: profile.googleId },
+        include: { site: { select: { id: true, nom: true, code: true, region: true, couleur: true } } },
+      });
+      return responsable;
+    }
+
+    // 3. No account found — Google login is only available for pre-existing accounts
+    throw new UnauthorizedException(
+      'Aucun compte trouvé pour cet email Google. Contactez votre administrateur.',
+    );
+  }
+
+  /** Generates a JWT for a responsable validated via Google */
+  generateTokenForResponsable(responsable: { id: string; email: string; siteId: string }) {
+    const payload: JwtPayload = {
+      sub:    responsable.id,
+      email:  responsable.email,
+      siteId: responsable.siteId,
+      role:   'RESPONSABLE',
+    };
+    return this.jwt.sign(payload);
   }
 }

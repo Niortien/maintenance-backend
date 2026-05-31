@@ -8,11 +8,14 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtAdminStrategy } from './jwt-admin.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtAdminGuard } from './jwt-admin.guard';
+import { GoogleStrategy } from './google.strategy';
+import { GoogleAuthGuard } from './google-auth.guard';
 import { DatabaseModule } from '../database/database.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -24,7 +27,7 @@ import { DatabaseModule } from '../database/database.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAdminStrategy, JwtAuthGuard, JwtAdminGuard],
+  providers: [AuthService, JwtStrategy, JwtAdminStrategy, JwtAuthGuard, JwtAdminGuard, GoogleStrategy, GoogleAuthGuard],
   exports: [JwtAuthGuard, JwtAdminGuard, JwtStrategy, JwtAdminStrategy, JwtModule],
 })
 export class AuthModule {}

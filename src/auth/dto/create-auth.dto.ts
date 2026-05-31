@@ -43,6 +43,23 @@ export class RegisterResponsableDto {
   siteId: string;
 }
 
+export class UpdateResponsableDto {
+  @ApiPropertyOptional({ example: 'Konan' })
+  @IsString()
+  @IsOptional()
+  nom?: string;
+
+  @ApiPropertyOptional({ example: 'Eric' })
+  @IsString()
+  @IsOptional()
+  prenom?: string;
+
+  @ApiPropertyOptional({ example: '+22507000001' })
+  @IsString()
+  @IsOptional()
+  telephone?: string;
+}
+
 export class ChangePasswordDto {
   @ApiProperty()
   @IsString()

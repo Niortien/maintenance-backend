@@ -1,9 +1,9 @@
 import {
-  Body, Controller, Get, Patch, Post, Query, Req, Res, UseGuards,
+  Body, Controller, Delete, Get, Patch, Post, Query, Req, Res, UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { ChangePasswordDto, LoginAdminDto, LoginDto, RegisterResponsableDto } from './dto/create-auth.dto';
+import { ChangePasswordDto, LoginAdminDto, LoginDto, RegisterResponsableDto, UpdateResponsableDto } from './dto/create-auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentResponsable, ResponsableWithSite } from './current-responsable.decorator';
 import { GoogleAuthGuard } from './google-auth.guard';
@@ -48,6 +48,27 @@ export class AuthController {
   @Get('me/stats')
   getSiteStats(@CurrentResponsable() user: ResponsableWithSite) {
     return this.authService.getSiteStats(user.siteId);
+  }
+
+  // PATCH /auth/me
+  @ApiOperation({ summary: 'Mettre à jour le profil du responsable connecté' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  updateProfile(
+    @CurrentResponsable() user: ResponsableWithSite,
+    @Body() dto: UpdateResponsableDto,
+  ) {
+    return this.authService.updateProfile(user.id, dto);
+  }
+
+  // DELETE /auth/me
+  @ApiOperation({ summary: 'Supprimer son propre compte' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Delete('me')
+  deleteAccount(@CurrentResponsable() user: ResponsableWithSite) {
+    return this.authService.deleteAccount(user.id);
   }
 
   // PATCH /auth/me/password

@@ -15,7 +15,7 @@ export interface GoogleUserProfile {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { ChangePasswordDto, LoginAdminDto, LoginDto, RegisterResponsableDto } from './dto/create-auth.dto';
+import { ChangePasswordDto, LoginAdminDto, LoginDto, RegisterResponsableDto, UpdateResponsableDto } from './dto/create-auth.dto';
 import { JwtPayload } from './jwt.strategy';
 
 @Injectable()
@@ -137,6 +137,27 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pwd, ...safe } = responsable;
     return safe;
+  }
+
+  // ─── Mise à jour du profil ────────────────────────────────────────────────
+  async updateProfile(responsableId: string, dto: UpdateResponsableDto) {
+    const updated = await this.prisma.responsableSite.update({
+      where: { id: responsableId },
+      data: {
+        ...(dto.nom       !== undefined && { nom: dto.nom }),
+        ...(dto.prenom    !== undefined && { prenom: dto.prenom }),
+        ...(dto.telephone !== undefined && { telephone: dto.telephone }),
+      },
+      include: { site: { select: { id: true, nom: true, code: true, region: true, couleur: true } } },
+    });
+    const { password: _pwd, ...safe } = updated;
+    return safe;
+  }
+
+  // ─── Suppression du compte ────────────────────────────────────────────────
+  async deleteAccount(responsableId: string) {
+    await this.prisma.responsableSite.delete({ where: { id: responsableId } });
+    return { message: 'Compte supprimé avec succès' };
   }
 
   // ─── Changement de mot de passe ────────────────────────────────────────────

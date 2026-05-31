@@ -100,6 +100,15 @@ enum TypePanne {
   AUTRE
 }
 
+enum StatutTechnicien {
+  ACTIF
+  EN_MAINTENANCE
+  INACTIF
+  EN_MISSION
+  EN_CONGE
+  MALADE
+}
+
 model Admin {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -129,7 +138,8 @@ model Technicien {
   prenom             String
   email              String         @unique
   telephone          String
-  statut             Statut         @default(ACTIF)
+  statut             StatutTechnicien @default(ACTIF)
+  lieuMission        String?
   specialite         Specialite
   photo              String?
   interventions      Intervention[]

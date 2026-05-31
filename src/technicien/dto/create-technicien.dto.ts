@@ -1,5 +1,5 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { Specialite, Statut } from '@prisma/client';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Specialite, StatutTechnicien } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTechnicienDto {
@@ -23,9 +23,14 @@ export class CreateTechnicienDto {
   @IsString()
   telephone: string;
 
-  @ApiProperty({ example: 'ACTIF', description: 'Statut du technicien', enum: Statut })
-  @IsEnum(Statut)
-  statut: Statut;
+  @ApiProperty({ example: 'ACTIF', description: 'Statut du technicien', enum: StatutTechnicien })
+  @IsEnum(StatutTechnicien)
+  statut: StatutTechnicien;
+
+  @ApiProperty({ example: 'Abidjan, Plateau', description: 'Lieu de mission (si EN_MISSION)', required: false })
+  @IsOptional()
+  @IsString()
+  lieuMission?: string;
 
   @ApiProperty({ example: 'MECANIQUE_GENERALE', description: 'Spécialité du technicien', enum: Specialite })
   @IsNotEmpty()

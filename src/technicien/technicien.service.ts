@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateTechnicienDto } from './dto/create-technicien.dto';
 import { UpdateTechnicienDto } from './dto/update-technicien.dto';
-import { Statut, StatutIntervention } from '@prisma/client';
+import { StatutTechnicien, StatutIntervention } from '@prisma/client';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 
@@ -61,9 +61,12 @@ export class TechnicienService {
 
   async getStatistics() {
     const total = await this.prisma.technicien.count();
-    const actifs = await this.prisma.technicien.count({ where: { statut: Statut.ACTIF } });
-    const enMaintenance = await this.prisma.technicien.count({ where: { statut: Statut.EN_MAINTENANCE } });
-    const inactifs = await this.prisma.technicien.count({ where: { statut: Statut.INACTIF } });
+    const actifs = await this.prisma.technicien.count({ where: { statut: StatutTechnicien.ACTIF } });
+    const enMaintenance = await this.prisma.technicien.count({ where: { statut: StatutTechnicien.EN_MAINTENANCE } });
+    const inactifs = await this.prisma.technicien.count({ where: { statut: StatutTechnicien.INACTIF } });
+    const enMission = await this.prisma.technicien.count({ where: { statut: StatutTechnicien.EN_MISSION } });
+    const enConge = await this.prisma.technicien.count({ where: { statut: StatutTechnicien.EN_CONGE } });
+    const malades = await this.prisma.technicien.count({ where: { statut: StatutTechnicien.MALADE } });
     
     // Techniciens avec interventions en cours
     const techniciensAvecInterventionsEnCours = await this.prisma.technicien.count({
@@ -81,6 +84,9 @@ export class TechnicienService {
       techniciensActifs: actifs,
       techniciensEnMaintenance: enMaintenance,
       techniciensInactifs: inactifs,
+      techniciensEnMission: enMission,
+      techniciensEnConge: enConge,
+      techniciensMalades: malades,
       techniciensAvecInterventionsEnCours: techniciensAvecInterventionsEnCours,
     };
   }

@@ -244,8 +244,8 @@ model Situation {
   equipementId  String
   site          Site               @relation(fields: [siteId], references: [id])
   siteId        String
-  responsable   ResponsableSite    @relation(fields: [responsableId], references: [id])
-  responsableId String
+  responsable   ResponsableSite?   @relation(fields: [responsableId], references: [id], onDelete: SetNull)
+  responsableId String?
   besoins       BesoinLogistique[]
   notifications Notification[]
   createdAt     DateTime           @default(now())

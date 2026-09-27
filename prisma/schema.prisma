@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -109,6 +109,13 @@ enum StatutTechnicien {
   MALADE
 }
 
+enum TypeConsommable {
+  HUILE_MOTEUR
+  HUILE_VERIN
+  PNEU
+  BATTERIE
+}
+
 model Admin {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -128,27 +135,28 @@ model Vehicule {
   interventions    Intervention[]
   site             Site?          @relation(fields: [siteId], references: [id])
   siteId           String?
+  repartitions     Repartition[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt @map("updated_at")
 }
 
 model Technicien {
-  id                 String         @id @default(ulid())
-  nom                String
-  prenom             String
-  email              String         @unique
-  telephone          String
-  statut             StatutTechnicien @default(ACTIF)
-  lieuMission        String?
-  specialite         Specialite
-  photo              String?
-  interventions      Intervention[]
-  historique         HistoriqueStatutTechnicien[]
-  site               Site           @relation("TechnicienSite", fields: [siteId], references: [id])
-  siteId             String
-  sitesResponsable   Site[]         @relation("ResponsableSite")
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt @map("updated_at")
+  id               String                       @id @default(ulid())
+  nom              String
+  prenom           String
+  email            String                       @unique
+  telephone        String
+  statut           StatutTechnicien             @default(ACTIF)
+  lieuMission      String?
+  specialite       Specialite
+  photo            String?
+  interventions    Intervention[]
+  historique       HistoriqueStatutTechnicien[]
+  site             Site                         @relation("TechnicienSite", fields: [siteId], references: [id])
+  siteId           String
+  sitesResponsable Site[]                       @relation("ResponsableSite")
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt @map("updated_at")
 }
 
 model Intervention {
@@ -175,36 +183,38 @@ model Intervention {
 }
 
 model Site {
-  id              String              @id @default(ulid())
-  nom             String
-  code            String              @unique
-  region          String?
-  couleur         String?             // ex: "#10b981"
-  responsable     Technicien?         @relation("ResponsableSite", fields: [responsableId], references: [id])
-  responsableId   String?
-  vehicules       Vehicule[]
-  techniciens     Technicien[]        @relation("TechnicienSite")
-  rapports        RapportJournalier[]
-  equipements     Equipement[]
-  situations      Situation[]
-  compte          ResponsableSite?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt @map("updated_at")
+  id            String              @id @default(ulid())
+  nom           String
+  code          String              @unique
+  region        String?
+  couleur       String? // ex: "#10b981"
+  responsable   Technicien?         @relation("ResponsableSite", fields: [responsableId], references: [id])
+  responsableId String?
+  vehicules     Vehicule[]
+  techniciens   Technicien[]        @relation("TechnicienSite")
+  rapports      RapportJournalier[]
+  equipements   Equipement[]
+  situations    Situation[]
+  repartitions  Repartition[]
+  compte        ResponsableSite?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt @map("updated_at")
 }
 
 model ResponsableSite {
-  id        String      @id @default(ulid())
-  email     String      @unique
-  password  String?
-  googleId  String?     @unique
-  nom       String
-  prenom    String
-  telephone String?
-  site      Site        @relation(fields: [siteId], references: [id])
-  siteId    String      @unique
-  situations Situation[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt @map("updated_at")
+  id           String        @id @default(ulid())
+  email        String        @unique
+  password     String?
+  googleId     String?       @unique
+  nom          String
+  prenom       String
+  telephone    String?
+  site         Site          @relation(fields: [siteId], references: [id])
+  siteId       String        @unique
+  situations   Situation[]
+  repartitions Repartition[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 }
 
 model RapportJournalier {
@@ -232,25 +242,25 @@ model LigneRapport {
 }
 
 model Equipement {
-  id              String             @id @default(ulid())
+  id              String              @id @default(ulid())
   nom             String
   categorie       CategorieEquipement
   immatriculation String?
-  statut          Statut             @default(ACTIF)
+  statut          Statut              @default(ACTIF)
   image           String?
-  site            Site               @relation(fields: [siteId], references: [id])
+  site            Site                @relation(fields: [siteId], references: [id])
   siteId          String
   situations      Situation[]
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt @map("updated_at")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt @map("updated_at")
 }
 
 model Situation {
   id            String             @id @default(ulid())
-  nom           String             // "SITUATION T115" — dérivé du nom de l'équipement
-  description   String             // description du problème + diagnostic
+  nom           String // "SITUATION T115" — dérivé du nom de l'équipement
+  description   String // description du problème + diagnostic
   statut        StatutSituation    @default(EN_ATTENTE)
-  images        SituationImage[]   // plusieurs images possibles
+  images        SituationImage[] // plusieurs images possibles
   equipement    Equipement         @relation(fields: [equipementId], references: [id])
   equipementId  String
   site          Site               @relation(fields: [siteId], references: [id])
@@ -273,9 +283,9 @@ model SituationImage {
 
 model BesoinLogistique {
   id           String    @id @default(ulid())
-  designation  String    // ex: "Plaquette hydrauliques"
-  quantite     Float     // ex: 2
-  prixUnitaire Float     // ex: 8000
+  designation  String // ex: "Plaquette hydrauliques"
+  quantite     Float // ex: 2
+  prixUnitaire Float // ex: 8000
   situation    Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
   situationId  String
   createdAt    DateTime  @default(now())
@@ -292,14 +302,42 @@ model Notification {
 }
 
 model HistoriqueStatutTechnicien {
-  id            String            @id @default(ulid())
-  technicien    Technicien        @relation(fields: [technicienId], references: [id], onDelete: Cascade)
-  technicienId  String
-  statut        StatutTechnicien
-  dateDebut     DateTime
-  dateFin       DateTime?
-  lieu          String?
-  notes         String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt @map("updated_at")
+  id           String           @id @default(ulid())
+  technicien   Technicien       @relation(fields: [technicienId], references: [id], onDelete: Cascade)
+  technicienId String
+  statut       StatutTechnicien
+  dateDebut    DateTime
+  dateFin      DateTime?
+  lieu         String?
+  notes        String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+}
+
+// Répartition journalière de stock (huile moteur, huile vérin, pneus, batteries)
+// distribué aux engins par site — remplace le suivi Excel "REPARTITIONS HPB".
+model Repartition {
+  id                String          @id @default(ulid())
+  date              DateTime
+  type              TypeConsommable
+  designation       String? // ex: "Pneu 315/80" — surtout utile pour les pneus
+  quantite          Float
+  prixUnitaireAchat Float
+  montantAchat      Float // = quantite * prixUnitaireAchat
+  prixUnitaireVente Float
+  montantVente      Float // = quantite * prixUnitaireVente
+  benefice          Float // = montantVente - montantAchat
+  fournisseur       String?
+
+  site          Site             @relation(fields: [siteId], references: [id])
+  siteId        String
+  vehicule      Vehicule?        @relation(fields: [vehiculeId], references: [id], onDelete: SetNull)
+  vehiculeId    String?
+  responsable   ResponsableSite? @relation(fields: [responsableId], references: [id], onDelete: SetNull)
+  responsableId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([siteId, type, date])
 }
